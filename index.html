@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Edupage">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
@@ -69,6 +69,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .teacher-role{font-size:10px;color:rgba(255,255,255,.5)}
 /* ─── MAIN ─── */
 .main{margin-left:232px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+.main{min-width:0}
+.page{min-width:0}
 /* ─── TOPBAR ─── */
 .topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100;box-shadow:var(--sh)}
 .topbar-left{display:flex;align-items:center;gap:10px}
@@ -153,12 +155,20 @@ textarea{resize:vertical;min-height:72px;line-height:1.6}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1.5px solid var(--border)}
 /* ─── GRADE MATRIX ─── */
-.grade-matrix-wrap{overflow-x:auto}
+.grade-matrix-wrap{overflow:auto;max-height:calc(100vh - 250px);-webkit-overflow-scrolling:touch}
 .grade-matrix{border-collapse:collapse;width:max-content;min-width:100%}
 .grade-matrix th,.grade-matrix td{border:1px solid var(--border);padding:8px 10px;text-align:center;white-space:nowrap}
+/* column header parts (wide = default) */
+.gm-wh{min-width:95px}
+.gm-wn{font-weight:800;font-size:11px}
+.gm-sh{min-width:180px}
+.gm-ah{min-width:70px}
+.gm-gh{min-width:65px}
 .grade-matrix thead tr{background:linear-gradient(to right,var(--surface2),#f5f3ff)}
-.gm-student{text-align:left!important;font-weight:700;position:sticky;left:0;background:var(--surface);z-index:1;border-right:2px solid var(--border2)!important}
-thead .gm-student{background:linear-gradient(to right,var(--surface2),#f5f3ff)}
+.gm-student{text-align:left!important;font-weight:700;position:sticky;left:0;background:var(--surface);z-index:3;border-right:2px solid var(--border2)!important}
+thead .gm-student{background:linear-gradient(to right,var(--surface2),#f5f3ff);z-index:5}
+.grade-matrix thead th{position:sticky;top:0;z-index:4;background:var(--surface2)}
+.grade-matrix thead th.gm-student{left:0;z-index:6;background:var(--surface2)}
 .gm-avg{font-family:var(--mono);font-weight:700}
 .c5{color:#15803d}.c4{color:#1d4ed8}.c3{color:#a16207}.c2{color:#b91c1c}
 /* ─── TABS ─── */
@@ -279,6 +289,23 @@ html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
   .ev-card{flex-wrap:wrap}
   #page-syllabus .section-header{flex-direction:column;align-items:stretch;gap:8px}
 }
+
+/* ─── GRADEBOOK: the whole class fits on the screen (the biggest size that still fits) ─── */
+@media screen{
+  #page-grades.gb-fit .grade-matrix td{padding:var(--gb-tdp) 6px!important}
+  #page-grades.gb-fit .grade-matrix .grade-chip{padding:var(--gb-cp) 6px;font-size:var(--gb-fs);min-width:calc(var(--gb-fs) * 2.4);line-height:1.2;border-radius:6px}
+  #page-grades.gb-fit .gm-student{font-size:var(--gb-nfs)}
+  #page-grades.gb-fit .gm-avg{font-size:var(--gb-nfs)}
+  #page-grades.gb-fit .grade-matrix .pg{margin:0 2px}
+  #page-grades.gb-fit .grade-matrix .pg-pct{font-size:var(--gb-pfs);padding:0 4px}
+  #page-grades.gb-h1 .grade-matrix thead th{padding:4px 6px}
+  #page-grades.gb-h1 .gm-wt{margin:2px 0!important}
+  #page-grades.gb-h1 .gm-wd{display:inline-block;margin:0 4px 0 0!important}
+  #page-grades.gb-h1 .gm-wx{display:inline-block;padding:0 6px!important}
+  #page-grades.gb-h2 .gb-info{display:none}
+  #page-grades.gb-h2 .gm-wt .wbadge{display:none}
+  #page-grades.gb-h2 .gm-wn{line-height:1.15}
+}
 @media print {
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   .sidebar,.topbar,.no-print,.filter-row,.tabs{display:none!important}
@@ -311,10 +338,13 @@ html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
   #page-syllabus .sy-status{background:#fff!important;color:#000!important;border:1px solid #000!important}
   #page-grades select{-webkit-appearance:none!important;appearance:none!important;border:none!important;background:transparent!important}
   /* gradebook: every column must fit on the sheet (no cut-off on the right) */
-  .grade-matrix-wrap{overflow:visible!important}
+  .grade-matrix-wrap{overflow:visible!important;max-height:none!important}
+  .grade-matrix thead th{position:static!important}
   .grade-matrix{width:100%!important;min-width:0!important}
   .grade-matrix th,.grade-matrix td{white-space:normal!important;min-width:0!important;padding:3px 4px!important;overflow-wrap:anywhere;word-break:break-word}
   .grade-matrix th[style*="min-width"]{min-width:0!important}
+  .grade-matrix thead th{width:auto!important;max-width:none!important}
+  .grade-matrix th:nth-last-child(-n+2){width:44px!important}
   .grade-matrix .grade-chip{min-width:22px!important;padding:1px 5px!important;font-size:11px!important}
   .grade-matrix .pg{margin:0!important;gap:2px!important}
   .grade-matrix .pg-pct{font-size:8px!important;padding:0 3px!important}
@@ -531,6 +561,7 @@ html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <select id="sy-class" onchange="renderSyllabus()"><option value="">Select Class…</option></select>
         <select id="sy-subj" onchange="renderSyllabus()"><option value="Math">Mathematics</option><option value="Science">Science</option></select>
+        <select id="sy-quarter" onchange="renderSyllabus()"><option value="">All quarters</option><option value="1">Quarter 1</option><option value="2">Quarter 2</option><option value="3">Quarter 3</option><option value="4">Quarter 4</option></select>
         <button class="btn btn-primary" onclick="openSyModal()">+ Plan a Topic</button>
         <button class="btn btn-print" onclick="window.print()">⎙ Print</button>
       </div>
@@ -751,6 +782,7 @@ html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       <div class="form-row"><label>Date</label><input type="date" id="sy-date"></div>
       <div class="form-row"><label>Status</label><select id="sy-status"><option value="done">✓ Done (covered)</option><option value="planned">Planned</option></select></div>
     </div>
+    <div class="form-row"><label>Quarter</label><select id="sy-quarter-sel" style="width:100%"><option value="1">Quarter 1</option><option value="2">Quarter 2</option><option value="3">Quarter 3</option><option value="4">Quarter 4</option></select></div>
     <div class="form-row"><label>Topic</label><input type="text" id="sy-topic" placeholder="e.g. Solving quadratic equations" style="width:100%"></div>
     <div class="form-row"><label>Homework (optional)</label><input type="text" id="sy-hw" placeholder="e.g. p. 45, ex. 1–6" style="width:100%"></div>
     <div class="form-row"><label>Notes (optional)</label><textarea id="sy-notes" rows="2" style="width:100%;padding:8px;border-radius:8px;border:1.5px solid var(--border);font-family:inherit" placeholder="What went well, what to repeat…"></textarea></div>
@@ -1225,22 +1257,28 @@ var _rdOrig=renderDashboard;renderDashboard=function(){_rdOrig();renderDashEvent
 var syEditId=null;
 function initSyllabus(){var d=document.getElementById('sy-q-date');if(d&&!d.value)d.value=tod();renderSyllabus();}
 function syCtx(){return{cid:document.getElementById('sy-class').value,subj:document.getElementById('sy-subj').value};}
-function syList(){var c=syCtx();return syllabus.filter(function(x){return x.classId===c.cid&&x.subject===c.subj;}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'')||0;});}
+function syGuessQuarter(d){var m=parseInt(String(d||tod()).split('-')[1],10);return(m>=9&&m<=10)?1:(m>=11&&m<=12)?2:(m>=1&&m<=3)?3:4;}
+function syQ(t){return t.quarter||syGuessQuarter(t.date);}
+function syQSel(){var v=document.getElementById('sy-quarter').value;return v?parseInt(v,10):0;}
+function syList(){var c=syCtx(),q=syQSel();return syllabus.filter(function(x){return x.classId===c.cid&&x.subject===c.subj&&(!q||syQ(x)===q);}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'')||0;});}
 function renderSyllabus(){
   var c=syCtx(),cont=document.getElementById('sy-container'),sum=document.getElementById('sy-summary'),pt=document.getElementById('sy-print-title');
   var cls=c.cid?byId(c.cid):null,sn=c.subj==='Science'?'Science':'Mathematics';
-  pt.textContent=cls?('Syllabus · Class '+cls.name+' · '+sn+' · '+cls.year):'Syllabus';
+  pt.textContent=cls?('Syllabus · '+cls.name+' · '+sn+' · '+cls.year+(syQSel()?' · Quarter '+syQSel():'')):'Syllabus';
   if(!c.cid){sum.innerHTML='';cont.innerHTML='<div class="empty-state"><div class="empty-icon">📖</div><div class="empty-text">Select a class to see its work program</div></div>';return;}
   var list=syList(),done=list.filter(function(x){return x.status==='done';}).length,pct=list.length?Math.round(done/list.length*100):0;
+  var allList=syllabus.filter(function(x){return x.classId===c.cid&&x.subject===c.subj;});
+  var perQ=[1,2,3,4].map(function(q){var l=allList.filter(function(x){return syQ(x)===q;});return 'Q'+q+': '+l.filter(function(x){return x.status==='done';}).length+'/'+l.length;}).join(' · ');
   var next=list.filter(function(x){return x.status!=='done';})[0];
   sum.innerHTML='<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div style="font-size:13px;font-weight:800">Covered: <span style="color:var(--green,#059669)">'+done+'</span> of '+list.length+' topics ('+pct+'%)</div>'
     +'<div class="no-print" style="flex:1;min-width:120px;height:8px;background:var(--surface2);border-radius:6px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:#059669"></div></div>'
-    +(next?'<div class="no-print" style="font-size:12px;color:var(--text3)">Next: <b>'+esc(next.topic)+'</b> ('+fmtDay(next.date)+')</div>':'')+'</div>';
+    +(next?'<div class="no-print" style="font-size:12px;color:var(--text3)">Next: <b>'+esc(next.topic)+'</b> ('+fmtDay(next.date)+')</div>':'')+'</div>'
+    +(syQSel()?'':'<div style="font-size:11px;color:var(--text3);margin-top:6px;font-weight:700">'+perQ+'</div>');
   if(!list.length){cont.innerHTML='<div class="empty-state"><div class="empty-icon">📖</div><div class="empty-text">No topics yet. Add what you covered today above, or plan upcoming topics.</div></div>';return;}
-  cont.innerHTML='<div class="table-wrap"><table><thead><tr><th style="width:36px">#</th><th style="width:130px">Date</th><th>Topic</th><th>Homework</th><th>Notes</th><th style="width:90px">Status</th><th class="no-print" style="width:90px"></th></tr></thead><tbody>'
+  cont.innerHTML='<div class="table-wrap"><table><thead><tr><th style="width:36px">#</th><th style="width:44px">Q</th><th style="width:130px">Date</th><th>Topic</th><th>Homework</th><th>Notes</th><th style="width:90px">Status</th><th class="no-print" style="width:90px"></th></tr></thead><tbody>'
     +list.map(function(x,i){
       var dn=x.status==='done';
-      return '<tr><td style="color:var(--text3);font-weight:700">'+(i+1)+'</td><td style="white-space:nowrap">'+fmtDay(x.date)+'</td><td style="font-weight:700">'+esc(x.topic)+'</td><td>'+esc(x.hw||'')+'</td><td style="color:var(--text2)">'+esc(x.notes||'')+'</td>'
+      return '<tr><td style="color:var(--text3);font-weight:700">'+(i+1)+'</td><td style="font-weight:800">Q'+syQ(x)+'</td><td style="white-space:nowrap">'+fmtDay(x.date)+'</td><td style="font-weight:700">'+esc(x.topic)+'</td><td>'+esc(x.hw||'')+'</td><td style="color:var(--text2)">'+esc(x.notes||'')+'</td>'
         +'<td><span class="badge sy-status" style="cursor:pointer;'+(dn?'background:#d1fae5;color:#047857':'background:#fef3c7;color:#b45309')+'" onclick="toggleSy(\''+x.id+'\')" title="Click to change">'+(dn?'✓ Done':'Planned')+'</span></td>'
         +'<td class="no-print" style="white-space:nowrap"><button class="btn btn-ghost" style="padding:3px 8px;font-size:11px" onclick="openSyModal(\''+x.id+'\')">✏️</button> <button class="btn btn-danger" style="padding:3px 8px;font-size:11px" onclick="deleteSy(\''+x.id+'\')">✕</button></td></tr>';
     }).join('')+'</tbody></table></div>';
@@ -1249,7 +1287,7 @@ function syQuickAdd(){
   var c=syCtx();if(!c.cid)return alert('Select a class first');
   var date=document.getElementById('sy-q-date').value||tod(),topic=document.getElementById('sy-q-topic').value.trim(),hw=document.getElementById('sy-q-hw').value.trim();
   if(!topic){document.getElementById('sy-q-topic').focus();return;}
-  syllabus.push({id:uid(),classId:c.cid,subject:c.subj,date:date,topic:topic,hw:hw,notes:'',status:date>tod()?'planned':'done'});
+  syllabus.push({id:uid(),classId:c.cid,subject:c.subj,quarter:syQSel()||syGuessQuarter(date),date:date,topic:topic,hw:hw,notes:'',status:date>tod()?'planned':'done'});
   saveAll();document.getElementById('sy-q-topic').value='';document.getElementById('sy-q-hw').value='';
   renderSyllabus();toast('Topic added');document.getElementById('sy-q-topic').focus();
 }
@@ -1260,12 +1298,13 @@ function openSyModal(id){
   document.getElementById('sy-date').value=x?x.date:tod();
   document.getElementById('sy-topic').value=x?x.topic:'';document.getElementById('sy-hw').value=x?(x.hw||''):'';document.getElementById('sy-notes').value=x?(x.notes||''):'';
   document.getElementById('sy-status').value=x?x.status:'planned';
+  document.getElementById('sy-quarter-sel').value=String(x?syQ(x):(syQSel()||syGuessQuarter(tod())));
   openModal('modal-syllabus');
 }
 function saveSy(){
   var c=syCtx(),date=document.getElementById('sy-date').value,topic=document.getElementById('sy-topic').value.trim();
   if(!topic)return alert('Enter a topic');if(!date)return alert('Choose a date');
-  var rec={date:date,topic:topic,hw:document.getElementById('sy-hw').value.trim(),notes:document.getElementById('sy-notes').value.trim(),status:document.getElementById('sy-status').value};
+  var rec={quarter:parseInt(document.getElementById('sy-quarter-sel').value,10),date:date,topic:topic,hw:document.getElementById('sy-hw').value.trim(),notes:document.getElementById('sy-notes').value.trim(),status:document.getElementById('sy-status').value};
   if(syEditId){var x=syllabus.find(function(t){return t.id===syEditId;});if(x)Object.assign(x,rec);}
   else syllabus.push(Object.assign({id:uid(),classId:c.cid,subject:c.subj},rec));
   saveAll();syEditId=null;closeModal('modal-syllabus');renderSyllabus();toast('Topic saved');
@@ -1544,6 +1583,40 @@ function renderGradeCell(cid,subj,wid,sid){
   var inner=a.map(function(g){return chip(g.score,g.percent,g.mode);}).join('<span style="color:#bbb;margin:0 2px">,</span>');
   return '<td style="text-align:center;cursor:pointer;padding:6px;vertical-align:middle" onclick="'+oc+'">'+inner+'</td>';
 }
+function fitGradebook(){
+  var pg=document.getElementById('page-grades');if(!pg)return;
+  var wrap=pg.querySelector('.grade-matrix-wrap');if(!wrap)return;
+  var table=wrap.querySelector('.grade-matrix');if(!table)return;
+  var clear=function(){pg.classList.remove('gb-fit','gb-h1','gb-h2');['--gb-tdp','--gb-cp','--gb-fs','--gb-nfs','--gb-pfs'].forEach(function(v){pg.style.removeProperty(v);});};
+  // s = 1 -> normal size (as in the screenshot); s = 0 -> the tightest size
+  var apply=function(sv){
+    pg.classList.add('gb-fit');
+    pg.classList.toggle('gb-h1',sv<0.6);pg.classList.toggle('gb-h2',sv<0.3);
+    // sv from 1 (normal) down to 0 = comfortable-tight; below 0 = extra tight (only on small screens)
+    var up=Math.max(sv,0),dn=Math.max(-sv,0);
+    pg.style.setProperty('--gb-tdp',(1+4.5*up-1*dn).toFixed(2)+'px');
+    pg.style.setProperty('--gb-cp',(0.5+3.5*up-0.5*dn).toFixed(2)+'px');
+    pg.style.setProperty('--gb-fs',(12.5+2.5*up-1.5*dn).toFixed(2)+'px');
+    pg.style.setProperty('--gb-nfs',(12.5+1.5*up-1.5*dn).toFixed(2)+'px');
+    pg.style.setProperty('--gb-pfs',(9.5+0.5*up-1*dn).toFixed(2)+'px');
+  };
+  wrap.style.maxHeight='none';clear();
+  if(window.innerWidth<=768)return;                    // phones: keep big touch targets, the table scrolls in its frame
+  var avail=function(){return window.innerHeight-(wrap.getBoundingClientRect().top+window.scrollY)-12;};
+  var fits=function(){return table.getBoundingClientRect().height<=avail();};
+  if(fits())return;                                    // normal size already fits
+  var lo=-1,hi=1,best=-2;
+  apply(-1);
+  if(fits()){                                          // find the biggest size that still fits
+    best=-1;
+    for(var i=0;i<10;i++){var mid=(lo+hi)/2;apply(mid);if(fits()){best=mid;lo=mid;}else hi=mid;}
+    apply(best);return;
+  }
+  // even the tightest size is too tall: the table scrolls inside its frame, header + names stay pinned
+  apply(-1);wrap.style.maxHeight=Math.max(240,avail())+'px';
+}
+var _fitT=null;
+window.addEventListener('resize',function(){clearTimeout(_fitT);_fitT=setTimeout(function(){var pg=document.getElementById('page-grades');if(pg&&pg.classList.contains('active'))fitGradebook();},150);});
 function renderGradebook(){
   const cid=document.getElementById('gb-class').value;
   const subj=document.getElementById('gb-subject').value;
@@ -1552,20 +1625,20 @@ function renderGradebook(){
   if(!cid){cont.innerHTML='<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">Select a class to view the gradebook</div></div>';return}
   const stus=getStu(cid),ws=getWorks(cid,subj,q),cls=byId(cid);
   if(!stus.length){cont.innerHTML='<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">No students in this class yet</div></div>';return}
-  let html=`<div style="margin-bottom:14px;padding:10px 16px;background:linear-gradient(135deg,var(--accent-soft),var(--purple-soft));border-radius:8px;border:1px solid var(--border2);font-size:12px;color:var(--text2)">
+  let html=`<div class="gb-info" style="margin-bottom:14px;padding:10px 16px;background:linear-gradient(135deg,var(--accent-soft),var(--purple-soft));border-radius:8px;border:1px solid var(--border2);font-size:12px;color:var(--text2)">
     <b style="color:var(--accent)">${cls?.name}</b> · ${subj} · Quarter ${q} · <b>${stus.length}</b> students · <b>${ws.length}</b> assessments
   </div>
   <div class="table-wrap"><div class="grade-matrix-wrap"><table class="grade-matrix">
     <thead><tr>
-      <th class="gm-student" style="min-width:180px">Student</th>
-      ${ws.map(w=>`<th style="min-width:95px">
-        <div style="font-weight:800;font-size:11px">${w.name}</div>
-        <div style="margin:3px 0"><span class="badge ${TC[w.type]||'badge-indigo'}">${w.type}</span><span class="wbadge">×${w.weight}</span></div>
-        <div style="font-size:9px;color:var(--text3);margin-bottom:4px;font-family:var(--mono)">${fmt(w.date)}</div>
-        <button class="btn btn-danger no-print" style="padding:2px 7px;font-size:9px;border-radius:5px" onclick="deleteWork('${w.id}')">✕</button>
+      <th class="gm-student gm-sh">Student</th>
+      ${ws.map(w=>`<th class="gm-wh">
+        <div class="gm-wn">${w.name}</div>
+        <div class="gm-wt" style="margin:3px 0"><span class="badge ${TC[w.type]||'badge-indigo'}">${w.type}</span><span class="wbadge">×${w.weight}</span></div>
+        <div class="gm-wd" style="font-size:9px;color:var(--text3);margin-bottom:4px;font-family:var(--mono)">${fmt(w.date)}</div>
+        <button class="btn btn-danger no-print gm-wx" style="padding:2px 7px;font-size:9px;border-radius:5px" onclick="deleteWork('${w.id}')">✕</button>
       </th>`).join('')}
-      <th style="min-width:70px">Avg.</th>
-      <th style="min-width:65px">Grade</th>
+      <th class="gm-ah">Avg.</th>
+      <th class="gm-gh">Grade</th>
     </tr></thead><tbody>`;
   stus.forEach(stu=>{
     const avg=calcAvg(cid,subj,q,stu.id),final=roundG(avg);
@@ -1597,6 +1670,7 @@ function renderGradebook(){
     </div>
   </div></div>`;
   cont.innerHTML=html;
+  fitGradebook();
 }
 function openGradeModal(cid,subj,wid,sid){
   var work=works.find(function(w){return w.id===wid;});
@@ -1988,7 +2062,7 @@ function renderSchedule(){
   const _gd=new Date().getDay();const todayIdx=(_gd>=1&&_gd<=5)?_gd-1:-1;
   // title used only when printing
   const pt=document.getElementById('sch-print-title');
-  if(pt)pt.textContent=fc?('Class '+fc.name):'All classes';
+  if(pt)pt.textContent=fc?fc.name:'Schedule';
   // teachers already used -> suggestions in the "Teacher" field
   const dl=document.getElementById('teacher-list');
   if(dl){const ts=[];schedule.forEach(l=>{if(l.teacher&&ts.indexOf(l.teacher)<0)ts.push(l.teacher);});dl.innerHTML=ts.map(t=>'<option value="'+t.replace(/"/g,'&quot;')+'">').join('');}
