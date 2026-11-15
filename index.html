@@ -793,6 +793,19 @@ html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-backup">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title"><span>💾 Backup is ready</span> <button class="modal-close" onclick="closeModal('modal-backup')">✕</button></div>
+    <div id="bk-info" style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;word-break:break-all"></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-primary" onclick="bkSave()">⬇ Save file</button>
+      <button class="btn btn-ghost" id="bk-share" style="display:none" onclick="bkShare()">📤 Share / Save to Files</button>
+      <button class="btn btn-ghost" onclick="bkOpen()">↗ Open in a new tab</button>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.5">On iPhone: tap “Share / Save to Files”, then “Save to Files”. Then, on the other device, use Import Data.</div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-add-hw">
   <div class="modal modal-lg">
     <div class="modal-title"><span id="hw-modal-title">📝 Add Homework</span> <button class="modal-close" onclick="cancelHw()">✕</button></div>
@@ -1043,13 +1056,22 @@ function openFileData(dataUrl,name){
       var dl=document.createElement('a');
       dl.href=blobUrl;dl.download=name||'file';dl.textContent='⬇ Download';
       dl.style.cssText='padding:5px 12px;border-radius:6px;background:#4f46e5;color:#fff;font-size:12px;font-weight:700;text-decoration:none';
+      var shr=null;
+      try{
+        var shFile=new File([blob],name||'file',{type:blob.type});
+        if(navigator.canShare&&navigator.share&&navigator.canShare({files:[shFile]})){
+          shr=document.createElement('button');shr.textContent='📤 Share';
+          shr.style.cssText='padding:5px 12px;border-radius:6px;background:#059669;color:#fff;border:none;cursor:pointer;font-size:12px;font-weight:700';
+          shr.onclick=function(){navigator.share({files:[shFile]}).catch(function(){});};
+        }
+      }catch(e){}
       var nt=document.createElement('a');
       nt.href=blobUrl;nt.target='_blank';nt.rel='noopener';nt.textContent='↗ New tab';
       nt.style.cssText='padding:5px 12px;border-radius:6px;background:#0d9488;color:#fff;font-size:12px;font-weight:700;text-decoration:none';
       var cl=document.createElement('button');
       cl.textContent='✕ Close';cl.onclick=closeFileViewer;
       cl.style.cssText='padding:5px 12px;border-radius:6px;background:#dc2626;color:#fff;border:none;cursor:pointer;font-size:12px;font-weight:700';
-      btns.appendChild(dl);btns.appendChild(nt);btns.appendChild(cl);
+      btns.appendChild(dl);if(shr)btns.appendChild(shr);btns.appendChild(nt);btns.appendChild(cl);
       toolbar.appendChild(title);toolbar.appendChild(btns);
 
       var viewer=document.createElement('div');
@@ -2531,11 +2553,38 @@ function exportData(){
     catch(err){alert('Backup is too large to create in this browser: '+err.message);return;}
     var d=new Date(),p2=function(n){return String(n).padStart(2,'0')};
     var name='edupage_backup_'+d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+'_'+p2(d.getHours())+'-'+p2(d.getMinutes())+'.json';
-    var url=URL.createObjectURL(blob),a=document.createElement('a');
-    a.href=url;a.download=name;document.body.appendChild(a);a.click();
-    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);
-    toast('Backup saved ('+Object.keys(data.files).length+' attached file'+(Object.keys(data.files).length===1?'':'s')+')');
+    showBackup(blob,name,Object.keys(data.files).length);
   });
+}
+var _bk=null;
+function bkFile(){return new File([_bk.blob],_bk.name,{type:'application/json'});}
+function showBackup(blob,name,nFiles){
+  _bk={blob:blob,name:name};
+  var mb=blob.size/1048576,size=mb>=1?mb.toFixed(1)+' MB':Math.max(1,Math.round(blob.size/1024))+' KB';
+  document.getElementById('bk-info').innerHTML='<b>'+esc(name)+'</b><br>'+size+' · '+nFiles+' attached file'+(nFiles===1?'':'s');
+  var canShare=false;try{canShare=!!(navigator.canShare&&navigator.share&&navigator.canShare({files:[bkFile()]}));}catch(e){}
+  document.getElementById('bk-share').style.display=canShare?'':'none';
+  openModal('modal-backup');
+}
+function bkSave(){
+  if(!_bk)return;
+  var url=URL.createObjectURL(_bk.blob),a=document.createElement('a');
+  a.href=url;a.download=_bk.name;document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);},500);
+  setTimeout(function(){URL.revokeObjectURL(url);},120000);   // keep the link alive: big files need time to save
+  closeModal('modal-backup');toast('Saving… look in your Downloads folder');
+}
+function bkShare(){
+  if(!_bk)return;
+  try{navigator.share({files:[bkFile()],title:'Edupage backup'}).then(function(){closeModal('modal-backup');}).catch(function(e){if(e&&e.name!=='AbortError')alert('Could not share the file: '+(e.message||e));});}
+  catch(e){alert('Sharing is not available here. Use “Save file” or “Open in a new tab”.');}
+}
+function bkOpen(){
+  if(!_bk)return;
+  var url=URL.createObjectURL(_bk.blob);
+  var w=window.open(url,'_blank');
+  if(!w)alert('The browser blocked the new tab. Allow pop-ups for this site, or use “Save file”.');else closeModal('modal-backup');
+  setTimeout(function(){URL.revokeObjectURL(url);},120000);
 }
 function importData(input){
   var file=input.files&&input.files[0];
